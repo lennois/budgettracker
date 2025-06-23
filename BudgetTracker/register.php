@@ -1,30 +1,27 @@
 <?php
 require('config.php');
-if (isset($_REQUEST['firstname'])) {
-  if ($_REQUEST['password'] == $_REQUEST['confirm_password']) {
-    $firstname = stripslashes($_REQUEST['firstname']);
-    $firstname = mysqli_real_escape_string($con, $firstname);
-    $lastname = stripslashes($_REQUEST['lastname']);
-    $lastname = mysqli_real_escape_string($con, $lastname);
 
-    $email = stripslashes($_REQUEST['email']);
-    $email = mysqli_real_escape_string($con, $email);
+if (isset($_POST['firstname'])) {
+    if ($_POST['password'] == $_POST['confirm_password']) {
+        $firstname = trim($_POST['firstname']);
+        $lastname = trim($_POST['lastname']);
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+        $trn_date = date("Y-m-d H:i:s");
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $con->prepare("INSERT INTO users (firstname, lastname, password, email, trn_date) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $firstname, $lastname, $hashedPassword, $email, $trn_date);
 
+        if ($stmt->execute()) {
+            echo "Registrasi berhasil!";
+        } else {
+            echo "Gagal: " . $stmt->error;
+        }
 
-    $password = stripslashes($_REQUEST['password']);
-    $password = mysqli_real_escape_string($con, $password);
-
-
-    $trn_date = date("Y-m-d H:i:s");
-
-    $query = "INSERT into `users` (firstname, lastname, password, email, trn_date) VALUES ('$firstname','$lastname', '" . md5($password) . "', '$email', '$trn_date')";
-    $result = mysqli_query($con, $query);
-    if ($result) {
-      header("Location: login.php");
+        $stmt->close();
+    } else {
+        echo "Password tidak cocok!";
     }
-  } else {
-    echo ("ERROR: Please Check Your Password & Confirmation password");
-  }
 }
 ?>
 <!DOCTYPE html>
